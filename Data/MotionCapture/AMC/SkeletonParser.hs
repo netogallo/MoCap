@@ -1,4 +1,6 @@
-module Data.MotionCapture.AMC.Parser where
+module Data.MotionCapture.AMC.SkeletonParser (
+  skeletonParser
+  )where
 
 -- MoCap
 import Data.MotionCapture.AMC.Types
@@ -12,10 +14,6 @@ import Text.Parsec.Perm
 import Data.Char (toUpper,toLower)
 import Data.Maybe (fromMaybe)
 
-skipWhitespace = skipMany $ skipMany1 space 
-                 <|> skipMany1 newline
-                 <|> (char '#' >> (skipMany $ noneOf ['\n']) >> newline >> return ())
-
 skeletonParser :: GenParser Char st [Maybe AsfSection]
 skeletonParser = many $ try (skipWhitespace >>  section)
 
@@ -24,7 +22,7 @@ section = do
   head <- header
   skipWhitespace
   case head of
-    "root" -> rootSection >>= return.Just
+    "root" -> rootSectionParser >>= return.Just
     "bonedata" -> bonesSection >>= return.Just
     _ -> skipMany bodyLine >> return Nothing
 
@@ -62,8 +60,8 @@ fromMaybeDesc :: Maybe (String,a) -> Maybe a
 fromMaybeDesc (Just (_,val)) = Just val
 fromMaybeDesc Nothing = Nothing
     
-rootSection :: GenParser Char st AsfSection
-rootSection = do
+rootSectionParser :: GenParser Char st AsfSection
+rootSectionParser = do
   ((_,rOrder),(_,rAxis),(_,rPosition),(_,rOrientation)) <- permute $ (\x1 x2 x3 x4 -> (x1,x2,x3,x4)) <$$> descriptor (string "order") parseDOF
                                             <||> descriptor (string "axis") parseAxis
                                             <||> descriptor (string "position") parseCoord3D
@@ -113,7 +111,7 @@ parseCoord2D = do
 parseCoord :: Int -> GenParser Char st [Double]
 parseCoord dim = do
   coords <- many1 $ try $ do
-    skipWhitespace
+    skipMany skipSpace
     res <- parseFloat
     return res
   if Prelude.length coords == dim 
