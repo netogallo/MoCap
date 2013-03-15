@@ -111,7 +111,9 @@ skipSpace = skipMany1 $ (space >> return ())
             <|> (char '#' >> (skipMany $ noneOf ['\n']) >> return ())
 
 skipWhitespace :: GenParser Char st ()
-skipWhitespace = skipMany $ skipSpace <|> (newline >> return ())
+skipWhitespace = skipMany $ skipSpace 
+                 <|> (newline >> return ())
+                 <|> (string "\r" >> return ())
                  
 -- | Parses a bone identifier
 parseIdentifier :: GenParser Char st String

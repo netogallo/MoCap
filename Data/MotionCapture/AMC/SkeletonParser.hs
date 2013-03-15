@@ -13,6 +13,7 @@ import Text.Parsec.Perm
 -- Haskell
 import Data.Char (toUpper,toLower)
 import Data.Maybe (fromMaybe)
+import Debug.Trace
 
 skeletonParser :: GenParser Char st [Maybe AsfSection]
 skeletonParser = many $ try (skipWhitespace >>  section)
@@ -21,10 +22,11 @@ section :: GenParser Char st (Maybe AsfSection)
 section = do
   head <- header
   skipWhitespace
+  t <- return $ trace head ()
   case head of
     "root" -> rootSectionParser >>= return.Just
     "bonedata" -> bonesSection >>= return.Just
-    _ -> skipMany bodyLine >> return Nothing
+    _ -> skipMany bodyLine >> (return . Just . Name) head
 
 bonesSection :: GenParser Char st AsfSection
 bonesSection = do
@@ -38,7 +40,7 @@ boneSection :: GenParser Char st BoneDataSection
 boneSection = do
   string "begin"
   ((_,bId),(_,bName),(_,bDir),(_,bLen),(_,bAxis),mBDof,mBLims) <- permute $ (\x1 x2 x3 x4 x5 x6 x7->(x1,x2,x3,x4,x5,x6,x7)) <$$> descriptor (string "id") parseIntegral
-                                                                        <||> descriptor (string "name") (many $ noneOf ['\n'])
+                                                                        <||> descriptor (string "name") parseIdentifier
                                                                         <||> descriptor (string "direction") (parseCoord3D)
                                                                         <||> descriptor (string "length") (parseFloat)
                                                                         <||> descriptor (string "axis") (parseCoordAxis)
@@ -133,8 +135,8 @@ parseDOF = do
 bodyLine :: GenParser Char st String
 bodyLine = do
   f <- noneOf [':']
-  rest <- many $ noneOf ['\n']
-  skipMany $ char '\n'
+  rest <- manyTill anyChar newline
+  skipWhitespace
   return $ f:rest
   
 descriptor :: GenParser Char st String -> GenParser Char st a -> GenParser Char st (String,a)
@@ -150,5 +152,4 @@ descriptor attrParser valParser = do
 header :: GenParser Char st String
 header = do
   char ':'
-  ident <- many $ noneOf ['\n']
-  return ident
+  parseIdentifier
