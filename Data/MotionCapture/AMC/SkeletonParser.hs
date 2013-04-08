@@ -65,14 +65,10 @@ fromMaybeDesc Nothing = Nothing
 
 unitSectionParser :: GenParser Char st AsfSection
 unitSectionParser = do
-  (mUAngle,mUMass,mULength) <- permute $ (\x1 x2 x3 -> (x1,x2,x3))
-                                       <$?> (Nothing,descriptor (string "angle") (parseAngle) >>= return.Just)
-                                       <|?> (Nothing,descriptor (string "mass") (parseFloat) >>= return.Just)
-                                       <|?> (Nothing,descriptor (string "length") (parseFloat) >>= return.Just)
-  let
-    uAngle  = fromMaybeDesc mUAngle
-    uMass   = fromMaybeDesc mUMass
-    uLength = fromMaybeDesc mULength
+  ((_,uAngle),(_,uMass),(_,uLength)) <- permute $ (,,)
+                                       <$$> descriptor (string "angle") (parseAngle)
+                                       <||> descriptor (string "mass") (parseFloat)
+                                       <||> descriptor (string "length") (parseFloat)
   return $ Units $ UnitsSection{unitsAngle = uAngle,
                                 unitsMass = uMass,
                                 unitsLength = uLength}

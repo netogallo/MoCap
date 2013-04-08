@@ -97,9 +97,9 @@ data AsfSection = Version String
                 deriving Show
 
 data UnitsSection = UnitsSection{
-  unitsAngle :: Maybe AMCAngleUnits,
-  unitsMass :: Maybe Double,
-  unitsLength :: Maybe Double
+  unitsAngle :: AMCAngleUnits,
+  unitsMass :: Double,
+  unitsLength :: Double
   } deriving Show
 
 data RootSection = RootSection{
