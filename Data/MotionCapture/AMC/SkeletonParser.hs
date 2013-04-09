@@ -24,6 +24,7 @@ section = do
   skipWhitespace
   t <- return $ trace head ()
   case head of
+    "units" -> unitSectionParser >>= return.Just
     "root" -> rootSectionParser >>= return.Just
     "bonedata" -> bonesSection >>= return.Just
     _ -> skipMany bodyLine >> (return . Just . Name) head
@@ -61,7 +62,17 @@ boneSection = do
 fromMaybeDesc :: Maybe (String,a) -> Maybe a
 fromMaybeDesc (Just (_,val)) = Just val
 fromMaybeDesc Nothing = Nothing
-    
+
+unitSectionParser :: GenParser Char st AsfSection
+unitSectionParser = do
+  ((_,uAngle),(_,uMass),(_,uLength)) <- permute $ (,,)
+                                       <$$> descriptor (string "angle") (parseAngle)
+                                       <||> descriptor (string "mass") (parseFloat)
+                                       <||> descriptor (string "length") (parseFloat)
+  return $ Units $ UnitsSection{unitsAngle = uAngle,
+                                unitsMass = uMass,
+                                unitsLength = uLength}
+
 rootSectionParser :: GenParser Char st AsfSection
 rootSectionParser = do
   ((_,rOrder),(_,rAxis),(_,rPosition),(_,rOrientation)) <- permute $ (\x1 x2 x3 x4 -> (x1,x2,x3,x4)) <$$> descriptor (string "order") parseDOF
@@ -74,6 +85,11 @@ rootSectionParser = do
                               rootPosition = rPosition,
                               rootOrientation = rOrientation}
     
+parseAngle :: GenParser Char st AMCAngleUnits
+parseAngle =   (string "deg" >> return Degrees)
+           <|> (string "rad" >> return Radians)
+           <|> fail "Didn't recognize angle unit type"
+
 parseCoordAxis :: GenParser Char st (Coord3D,(Axis,Axis,Axis))
 parseCoordAxis = do
   c <- parseCoord3D

@@ -93,13 +93,18 @@ data AsfFile = AsfFile{
 
 data AsfSection = Version String
                 | Name String
---                | Units UnitsSection
+                | Units UnitsSection
                 | Documentation String
                 | Root RootSection
                 | BoneData [BoneDataSection]
 --                | Hierarchy HierarchySection
                 deriving Show
 
+data UnitsSection = UnitsSection{
+  unitsAngle :: AMCAngleUnits,
+  unitsMass :: Double,
+  unitsLength :: Double
+  } deriving Show
 
 data RootSection = RootSection{
   rootOrder :: [DegreeOfFreedom],
