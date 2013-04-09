@@ -24,7 +24,7 @@ parseAMCFile asf = do
   return $ AMCFile{
     specData=Nothing,
     angleUnits=Nothing,
-    amcSectioins=sections}
+    amcSections=sections}
   
 
 parseCoordsSection ::  AsfFile -> GenParser Char st AMCSection

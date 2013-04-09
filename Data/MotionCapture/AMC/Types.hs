@@ -5,6 +5,10 @@ import Text.ParserCombinators.Parsec
 type Coord2D = (Double,Double)
 type Coord3D = (Double,Double,Double)
 
+show3DCoord (x,y,z) = (show x)++" "++(show y)++" "++(show z)
+
+show2DCoord (x,y) = (show x)++" "++(show y)
+
 data Skeleton = Skeleton {position :: Coord3D,
                           orientation :: Coord3D,
                           skeletonBones :: [Bone]} deriving Show
@@ -47,7 +51,7 @@ data Bone = Bone {
 data AMCFile = AMCFile{
   specData :: Maybe AMCSpecData,
   angleUnits :: Maybe AMCAngleUnits,
-  amcSectioins :: [AMCSection]
+  amcSections :: [AMCSection]
   } deriving Show
 
 data AMCSection = AMCSection{

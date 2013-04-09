@@ -1,6 +1,11 @@
 module Data.MotionCapture.MoCap (
+  -- Asf Files
   loadAsfFromFile,
-  loadAMCFromFile
+  findAsfBone,
+  -- Amc Files
+  loadAMCFromFile,
+  exportAMC,
+  setBone
   ) where
 
 import Data.MotionCapture.Asf

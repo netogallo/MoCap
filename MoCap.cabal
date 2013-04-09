@@ -19,6 +19,7 @@ library
   exposed-modules:     Data.MotionCapture.AMC.Types
                        Data.MotionCapture.AMC.SkeletonParser
                        Data.MotionCapture.AMC.AMCParser
+                       Data.MotionCapture.AMC.AMCExporter		       
                        Data.MotionCapture.AMC
                        Data.MotionCapture.Asf
                        Data.MotionCapture.MoCap

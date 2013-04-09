@@ -1,5 +1,7 @@
 module Data.MotionCapture.Asf( 
-  loadAsfFromFile
+  loadAsfFromFile,
+  findAsfBone,
+  
   )where
 
 -- MoCap Modules
@@ -10,6 +12,9 @@ import Data.MotionCapture.AMC.Types
 import Text.ParserCombinators.Parsec
 import Text.Parsec.Error
 import Text.Parsec.Pos (newPos)
+
+-- Haskell
+import Data.List (find)
 
 -- | Try to parse the given Asf file into it's representation
 -- return the file on success or the resulting parse error
@@ -41,3 +46,6 @@ createAsfFromSections srcName sections = sectionsResult
         rootSection = rSection,
         boneDataSections = bDataSection}
   
+-- | Get the bone information for the bone with the given identifier
+findAsfBone :: AsfFile -> String -> Maybe (BoneDataSection)
+findAsfBone asf name = find (\x -> boneName x == name) $ boneDataSections asf
