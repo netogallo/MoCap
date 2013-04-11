@@ -88,6 +88,7 @@ data BoneDataSection = BoneDataSection{
 data AsfFile = AsfFile{
   
   rootSection :: RootSection,
+  unitsSection :: UnitsSection,
   boneDataSections :: [BoneDataSection]
   } deriving Show
 
