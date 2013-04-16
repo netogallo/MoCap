@@ -24,10 +24,10 @@ section = do
   skipWhitespace
   t <- return $ trace head ()
   case head of
-    "units" -> unitSectionParser >>= return.Just
-    "root" -> rootSectionParser >>= return.Just
-    "bonedata" -> bonesSection >>= return.Just
-    _ -> skipMany bodyLine >> (return . Just . Name) head
+    "units"    -> Just `fmap` unitSectionParser
+    "root"     -> Just `fmap` rootSectionParser
+    "bonedata" -> Just `fmap` bonesSection
+    _          -> skipMany bodyLine >> (return . Just . Name) head
 
 bonesSection :: GenParser Char st AsfSection
 bonesSection = do
@@ -40,13 +40,14 @@ bonesSection = do
 boneSection :: GenParser Char st BoneDataSection
 boneSection = do
   string "begin"
-  ((_,bId),(_,bName),(_,bDir),(_,bLen),(_,bAxis),mBDof,mBLims) <- permute $ (\x1 x2 x3 x4 x5 x6 x7->(x1,x2,x3,x4,x5,x6,x7)) <$$> descriptor (string "id") parseIntegral
+  ((_,bId),(_,bName),(_,bDir),(_,bLen),(_,bAxis),mBDof,mBLims) <- permute $ (,,,,,,)
+                                                                        <$$> descriptor (string "id") parseIntegral
                                                                         <||> descriptor (string "name") parseIdentifier
                                                                         <||> descriptor (string "direction") (parseCoord3D)
                                                                         <||> descriptor (string "length") (parseFloat)
                                                                         <||> descriptor (string "axis") (parseCoordAxis)
-                                                                        <|?> (Nothing,descriptor (string "dof") (parseDOF) >>= return.Just)
-                                                                        <|?> (Nothing,descriptor (string "limits") (manyCoord2D) >>= return.Just)
+                                                                        <|?> (Nothing,Just `fmap` descriptor (string "dof") parseDOF)
+                                                                        <|?> (Nothing,Just `fmap` descriptor (string "limits") manyCoord2D)
   string "end"
   let
     bDof = fromMaybeDesc mBDof
@@ -66,19 +67,20 @@ fromMaybeDesc Nothing = Nothing
 unitSectionParser :: GenParser Char st AsfSection
 unitSectionParser = do
   ((_,uAngle),(_,uMass),(_,uLength)) <- permute $ (,,)
-                                       <$$> descriptor (string "angle") (parseAngle)
-                                       <||> descriptor (string "mass") (parseFloat)
-                                       <||> descriptor (string "length") (parseFloat)
+                                        <$$> descriptor (string "angle") (parseAngle)
+                                        <||> descriptor (string "mass") (parseFloat)
+                                        <||> descriptor (string "length") (parseFloat)
   return $ Units $ UnitsSection{unitsAngle = uAngle,
                                 unitsMass = uMass,
                                 unitsLength = uLength}
 
 rootSectionParser :: GenParser Char st AsfSection
 rootSectionParser = do
-  ((_,rOrder),(_,rAxis),(_,rPosition),(_,rOrientation)) <- permute $ (\x1 x2 x3 x4 -> (x1,x2,x3,x4)) <$$> descriptor (string "order") parseDOF
-                                            <||> descriptor (string "axis") parseAxis
-                                            <||> descriptor (string "position") parseCoord3D
-                                            <||> descriptor (string "orientation") parseCoord3D
+  ((_,rOrder),(_,rAxis),(_,rPosition),(_,rOrientation)) <- permute $ (,,,)
+                                        <$$> descriptor (string "order") parseDOF
+                                        <||> descriptor (string "axis") parseAxis
+                                        <||> descriptor (string "position") parseCoord3D
+                                        <||> descriptor (string "orientation") parseCoord3D
   
   return $ Root $ RootSection{rootOrder = rOrder,
                               rootAxis = rAxis,
