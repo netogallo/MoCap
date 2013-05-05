@@ -84,12 +84,18 @@ data BoneDataSection = BoneDataSection{
   boneLimits :: Maybe [Coord2D]
   } deriving Show
 
+type BoneHierarchy = [HierarchyNode]
+
+data HierarchyNode = HierarchyNode {
+  rootBoneName :: String,
+  childBoneNames :: [String]
+} deriving Show
 
 data AsfFile = AsfFile{
-  
   rootSection :: RootSection,
   unitsSection :: UnitsSection,
-  boneDataSections :: [BoneDataSection]
+  boneDataSections :: [BoneDataSection],
+  hierarchySection :: BoneHierarchy
   } deriving Show
 
 data AsfSection = Version String
@@ -98,7 +104,7 @@ data AsfSection = Version String
                 | Documentation String
                 | Root RootSection
                 | BoneData [BoneDataSection]
---                | Hierarchy HierarchySection
+                | Hierarchy BoneHierarchy
                 deriving Show
 
 data UnitsSection = UnitsSection{

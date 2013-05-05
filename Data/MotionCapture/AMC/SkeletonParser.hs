@@ -24,10 +24,11 @@ section = do
   skipWhitespace
   t <- return $ trace head ()
   case head of
-    "units"    -> Just `fmap` unitSectionParser
-    "root"     -> Just `fmap` rootSectionParser
-    "bonedata" -> Just `fmap` bonesSection
-    _          -> skipMany bodyLine >> (return . Just . Name) head
+    "units"     -> Just `fmap` unitSectionParser
+    "root"      -> Just `fmap` rootSectionParser
+    "bonedata"  -> Just `fmap` bonesSection
+    "hierarchy" -> Just `fmap` boneHierarchy
+    _           -> skipMany bodyLine >> (return . Just . Name) head
 
 bonesSection :: GenParser Char st AsfSection
 bonesSection = do
@@ -63,6 +64,25 @@ boneSection = do
 fromMaybeDesc :: Maybe (String,a) -> Maybe a
 fromMaybeDesc (Just (_,val)) = Just val
 fromMaybeDesc Nothing = Nothing
+
+boneHierarchy :: GenParser Char st AsfSection
+boneHierarchy = do
+  string "begin"
+  hNodes <- many $ try $ do
+    skipWhitespace
+    hNode <- hierarchyNode
+    return hNode
+  skipWhitespace
+  string "end"
+  return $ Hierarchy hNodes
+
+hierarchyNode :: GenParser Char st HierarchyNode
+hierarchyNode = do
+  rootName <- parseIdentifier
+  childNames <- many1 $ try $ do
+    many1 (char ' ')
+    parseIdentifier
+  return $ HierarchyNode rootName childNames
 
 unitSectionParser :: GenParser Char st AsfSection
 unitSectionParser = do
