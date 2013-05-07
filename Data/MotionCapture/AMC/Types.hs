@@ -98,6 +98,20 @@ data AsfFile = AsfFile{
   hierarchySection :: BoneHierarchy
   } deriving Show
 
+data AsfSectionNames = AsfSectionNames {
+  rootName :: String,
+  unitsName :: String,
+  bonedataName :: String,
+  hierarchyName :: String
+  }
+                       
+sectionsName = AsfSectionNames {
+  rootName = "root",
+  unitsName = "units",
+  bonedataName = "bonedata",
+  hierarchyName = "hierarchy"
+  }
+
 data AsfSection = Version String
                 | Name String
                 | Units UnitsSection

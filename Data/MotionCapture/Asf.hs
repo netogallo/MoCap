@@ -25,29 +25,26 @@ loadAsfFromFile fp = do
     Left error -> return $ Left error
     Right sections -> return $ createAsfFromSections fp sections
     
-    
 -- | Generate an Asf file representation if the list of sections contains
 -- all the necessary sections. Otherwise return an error informing about
 -- the missing sections
-createAsfFromSections :: String -> [Maybe AsfSection] -> Either ParseError AsfFile
-createAsfFromSections srcName sections = sectionsResult
-  where
-    mSections = foldl collectSections (Nothing,Nothing,Nothing) sections
-    collectSections (mRootSection,mBoneDataSection,mUnits) asfSection = case asfSection of
-      Just (Root rSect) -> (Just rSect,mBoneDataSection,mUnits)
-      Just (BoneData bDataSection) -> (mRootSection,Just bDataSection,mUnits)
-      Just (Units uSection) -> (mRootSection,mBoneDataSection,Just uSection)
-      _ -> (mRootSection,mBoneDataSection,mUnits)
-    sectionError msg = Left $ newErrorMessage (Message msg) (newPos srcName 0 0) 
-    sectionsResult = case mSections of
-      (Nothing,Nothing,Nothing) -> sectionError "No root and bonedata section found."
-      (Nothing,_,_) -> sectionError "No root section found."
-      (_,Nothing,_) -> sectionError "No bonedata section found."
-      (_,_,Nothing) -> sectionError "No units section found."
-      (Just rSection,Just bDataSection,Just uSection) -> Right $ AsfFile{
-        rootSection = rSection,
-        boneDataSections = bDataSection,
-        unitsSection = uSection}
+createAsfFromSections :: String -> [(String,AsfSection)] -> Either ParseError AsfFile
+createAsfFromSections srcName sections = do 
+  fSections <- return $ do
+    rSect <- lookup (rootName sectionsName) sections
+    uSect <- lookup (unitsName sectionsName) sections
+    bdSect <- lookup (bonedataName sectionsName) sections
+    hSect <- lookup (hierarchyName sectionsName) sections
+    return (rSect,uSect,bdSect,hSect)
+    
+  case fSections of
+    Nothing -> fail $ "Missing Asf File Sections."
+    Just (Root rSect,Units uSect,BoneData bdSect,Hierarchy hSect) -> return $ AsfFile{
+      rootSection = rSect,
+      boneDataSections = bdSect,
+      unitsSection = uSect,
+      hierarchySection = hSect}
+    _ -> fail $ "Pattern match failure, the parser has a bug"
   
 -- | Get the bone information for the bone with the given identifier
 findAsfBone :: AsfFile -> String -> Maybe (BoneDataSection)
