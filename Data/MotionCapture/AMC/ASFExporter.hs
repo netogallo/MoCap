@@ -101,8 +101,6 @@ writeHierarchySection h asf = do
 showAxis :: (Axis,Axis,Axis) -> String
 showAxis (x,y,z) = map axisLetter [x,y,z]
   where
-    axisLetter x =
-      case x of
-        AX -> 'X'
-        AY -> 'Y'
-        AZ -> 'Z'
+    axisLetter AX = 'X'
+    axisLetter AY = 'Y'
+    axisLetter AZ = 'Z'
