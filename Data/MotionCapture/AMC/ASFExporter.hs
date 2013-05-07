@@ -48,11 +48,9 @@ writeUnitsSection h asf = do
   hPutStr   h "length " 
   hPrintf   h "%f\n" $ unitsLength unitsSec
   where
-    unitsSec    = unitsSection asf
-    angleText x =
-      case x of
-        Degrees -> "deg"
-        Radians -> "rad"
+    unitsSec          = unitsSection asf
+    angleText Degrees = "deg"
+    angleText Radians = "rad"
 
 writeBoneDataSections :: Handle -> AsfFile -> IO ()
 writeBoneDataSections h asf = do
